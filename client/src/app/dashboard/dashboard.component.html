@@ -1,0 +1,59 @@
+<div class="container mt-5 dash-container">
+  <h2>
+    <span class="secondary-text">Welcome, </span>
+    <span id="dash-username">
+      {{ firstName }}!
+    </span>
+  </h2>
+
+  <div class="d-flex justify-content-between gap-5 my-4" id="stat-div">
+
+    <div class="col">
+      <div class="card text-white pt-4 mb-3 h-100 stat-cards" id="tot-users-card">
+        <div>Total Users</div>
+        <div class="mt-3">
+          <h5 class="card-title">{{ totalUsers }}</h5>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card text-white pt-4 mb-3 h-100 stat-cards" id="tot-d-managers-card">
+        <div>Data Managers</div>
+        <div class="mt-3">
+          <h5 class="card-title">{{ dataManagerCount }}</h5>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card text-white pt-4 mb-3 h-100 stat-cards" id="tot-employee-card">
+        <div>Employees</div>
+        <div class="mt-3">
+          <h5 class="card-title">{{ employeeCount }}</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-md-12" style="height: auto; max-height: 600px; overflow-y: auto; margin-bottom: 50px;">
+      <kendo-grid
+        [data]="gridData"
+        [pageSize]="state.take"
+        [skip]="state.skip"
+        [sortable]="true"
+        [sort]="state.sort"
+        filterable="menu"
+        [filter]="state.filter"
+        [pageable]="{buttonCount:5,pageSizes:[5,10,25,50]}"
+        (dataStateChange)="dataStateChange($event)"
+      >
+        <!-- <kendo-grid-column field="id" title="ID" [width]="100"></kendo-grid-column> -->
+        <kendo-grid-column field="name" title="Name"></kendo-grid-column>
+        <kendo-grid-column field="email" title="Email"></kendo-grid-column>
+        <kendo-grid-column field="role" title="Role" [filterable]="false"></kendo-grid-column>
+      </kendo-grid>
+    </div>
+  </div>
+</div>
