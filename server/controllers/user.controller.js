@@ -97,13 +97,24 @@ export const getUserById = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const { 
-      page,
-      limit,
-      sorts,
-      filters,
-      searchQuery,
+    // Extract parameters with defaults
+    const {
+      page = 1,
+      limit = 10,
+      sorts = [],
+      filters = [],
+      searchQuery = "",
     } = req.body;
+
+    // Validate input
+    if (!Array.isArray(sorts) || !Array.isArray(filters)) {
+      return response(res, {
+        statusCode: 400,
+        message: "Invalid sorts or filters format",
+      });
+    }
+
+    // Call the service with the extracted parameters
     const users = await getAllUsersService({
       page,
       limit,
@@ -111,10 +122,21 @@ export const getAllUsers = async (req, res) => {
       sorts,
       filters,
     });
+
+    // Handle no users found
+    if (users.count === 0) {
+      return response(res, {
+        statusCode: 404,
+        message: messages.general.DATA_NOT_FOUND,
+      });
+    }
+
+    // Respond with data
+    const { rows, count } = users;
     return response(res, {
       statusCode: 200,
       message: messages.general.SUCCESS,
-      data: users,
+      data: { rows, count },
     });
   } catch (error) {
     console.error(error);
@@ -124,6 +146,7 @@ export const getAllUsers = async (req, res) => {
     });
   }
 };
+
 
 // Update a user by ID
 export const updateUser = async (req, res) => {
