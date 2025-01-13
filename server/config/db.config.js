@@ -1,58 +1,26 @@
-// import pg from 'pg';
-import { Sequelize } from "sequelize";
-import { env } from "./env.config.js";
+import { Pool } from "pg"; // Import the Pool class from pg
+import { env } from "./env.config.js"; // Import your environment variables
 
-// pg.types.setTypeParser(1114, (stringValue) => {
-//   return new Date(stringValue + '+0000');
-//   // e.g., UTC offset. Use any offset that you would like.
-// });
+// Create a new connection pool using the environment configuration
+const pool = new Pool({
+  user: env.db.username,       // Database username
+  host: env.db.host,           // Database host
+  database: env.db.database,   // Database name
+  password: env.db.password,   // Database password
+  port: env.db.port,           // Database port (default for PostgreSQL is 5432)
+  ssl: env.db.ssl || false,    // Enable SSL if required (optional)
+});
 
-const dbConfig = {
-  // Database configuration object
-  database: env.db.database,
-  username: env.db.username,
-  password: env.db.password,
-  host: env.db.host,
-  port: env.db.port,
-};
-
-// Initialize Sequelize with the connection parameters
-const sequelize = new Sequelize(
-  dbConfig.database,
-  dbConfig.username,
-  dbConfig.password,
-  {
-    host: dbConfig.host,
-    port: dbConfig.port,
-    dialect: "postgres",
-    dialectOptions: {
-      useUTC: true,
-      timezone: "UTC",
-    },
-    logging: false,
+// Test the connection to ensure the database is reachable
+(async () => {
+  try {
+    await pool.query("SELECT 1"); // Simple query to test connection
+    console.log("Connected to the PostgreSQL database successfully.");
+  } catch (err) {
+    console.error("Error connecting to the PostgreSQL database:", err.message);
+    process.exit(1); // Exit the process if the connection fails
   }
-);
+})();
 
-// // Test the connection
-// sequelize
-//   .authenticate()
-//   .then(() => {
-//     console.log("Connection to Database has been established successfully.");
-
-//     // Sync the models with the database
-//     sequelize
-//       .sync({ force: true }) // `force: false` ensures existing tables are not dropped
-//       .then(() => {
-//         console.log(
-//           "Database & tables have been created or updated successfully."
-//         );
-//       })
-//       .catch((syncErr) => {
-//         console.error("Error during table creation/update:", syncErr);
-//       });
-//   })
-//   .catch((err) => {
-//     console.error("Unable to connect to the database:", err); // throw error in case something goes wrong while trying to establish a connection to the db.
-//   });
-
-export { sequelize };
+// Export the pool to be used for executing raw SQL queries in other parts of your app
+export default pool;
