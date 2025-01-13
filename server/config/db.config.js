@@ -1,4 +1,5 @@
-import { Pool } from "pg"; // Import the Pool class from pg
+import pkg from "pg"; // Import the entire 'pg' package
+const { Pool } = pkg; // Destructure 'Pool' from the package
 import { env } from "./env.config.js"; // Import your environment variables
 
 // Create a new connection pool using the environment configuration

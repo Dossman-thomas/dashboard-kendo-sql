@@ -1,53 +1,28 @@
-import { DataTypes } from 'sequelize';
-import { sequelize } from '../../config/index.js';
 import bcrypt from 'bcrypt';
+import pool from '../../config/db.config.js'; // Importing the pool from db.config.js for PostgreSQL connection
 
-export const UserModel = sequelize.define('users', {
-    id: {
-        type: DataTypes.UUID,
-        primaryKey: true,
-        defaultValue: DataTypes.UUIDV4,
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-        validate: {
-            isEmail: true, 
-        },
-    },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    role: {
-        type: DataTypes.ENUM('admin', 'data manager', 'employee'),
-        allowNull: false,
-    },
-}, {
-    freezeTableName: true,
-    timestamps: true, // automatically includes createdAt and updatedAt
-    // explicitly exclude password in toJSON method
-    defaultScope: {
-        attributes: ['id', 'name', 'email', 'role'], // exclude password from default query
-    }
-});
+export const UserModel = {
+  tableName: 'users', // Table name in the PostgreSQL database
 
-// Existing password hashing and verification methods remain the same
-UserModel.beforeCreate(async (user) => {
-    user.password = await bcrypt.hash(user.password, 10);
-});
+  // Method to hash password before saving
+  async hashPassword(password) {
+    return await bcrypt.hash(password, 10);
+  },
 
-UserModel.beforeUpdate(async (user) => {
+  // Method to compare passwords
+  async verifyPassword(storedPassword, inputPassword) {
+    return await bcrypt.compare(inputPassword, storedPassword);
+  },
+
+  // Hooks for user creation and update (before create and update)
+  async beforeCreate(user) {
+    user.password = await this.hashPassword(user.password);
+  },
+
+  async beforeUpdate(user) {
     if (user.changed('password')) {
-        user.password = await bcrypt.hash(user.password, 10);
+      user.password = await this.hashPassword(user.password);
     }
-});
+  },
 
-UserModel.prototype.verifyPassword = async function (password) {
-    return await bcrypt.compare(password, this.password);
 };

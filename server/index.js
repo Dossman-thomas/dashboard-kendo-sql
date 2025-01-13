@@ -1,4 +1,4 @@
-import { env, sequelize } from './config/index.js';
+import { env } from './config/index.js';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';

@@ -1,27 +1,6 @@
-import { DataTypes } from 'sequelize';
-import { sequelize } from '../../config/index.js';
+import pool from '../../config/db.config.js'; // Import the pool from your db.config.js
 
-// Permission model
-export const RolePermissionModel = sequelize.define('permissions', {
-    role: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-    },
-    canCreate: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-    },
-    canRead: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-    },
-    canUpdate: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-    },
-    canDelete: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-    },
-});
+// Permission model logic (No Sequelize)
+export const RolePermissionModel = {
+  tableName: 'permissions', // The name of the table in your PostgreSQL database
+};
