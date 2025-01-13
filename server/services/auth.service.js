@@ -1,24 +1,30 @@
-import bcrypt from "bcrypt"; 
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { UserModel } from "../database/models/user.model.js";
+import { pool } from "../config/index.js";
 
 export const authenticateUserService = async (email, password) => {
   try {
-    // Find the user by email, explicitly including the password
-    const user = await UserModel.findOne({ 
-      where: { email },
-      attributes: ['id', 'name', 'email', 'role', 'password'] 
-    });
+    // Query to fetch the user by email, explicitly including the password
+    const query = `
+      SELECT id, name, email, role, password 
+      FROM users 
+      WHERE email = $1
+      LIMIT 1;
+    `;
+    const values = [email];
+    const result = await pool.query(query, values);
 
-    if (!user) {
+    // If no user is found, throw an error
+    if (result.rows.length === 0) {
       const error = new Error('Invalid credentials. Please check your email and password, then try again.');
       error.status = 404;
       throw error;
     }
 
+    const user = result.rows[0];
+
     // Compare the provided password with the hashed password stored in the database
     const isValid = await bcrypt.compare(password, user.password);
-
     if (!isValid) {
       const error = new Error('Invalid credentials. Please check your email and password, then try again.');
       error.status = 404;
@@ -30,10 +36,10 @@ export const authenticateUserService = async (email, password) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
     };
 
-    // If the password is valid, generate JWT token
+    // Generate a JWT token
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,

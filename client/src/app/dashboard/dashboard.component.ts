@@ -52,29 +52,31 @@ export class DashboardComponent implements OnInit {
       : 'User';
   }
 
-  // Fetch users with current pagination, filtering, and sorting
-  private loadUsers(): void {
-    console.log('Request payload for users:', this.body);
+// Fetch users with current pagination, filtering, and sorting
+private loadUsers(): void {
+  console.log('Request payload for users:', this.body);
 
-    this.userService.getAllUsers(this.body).subscribe({
-      next: (response: any) => {
-        if (Array.isArray(response.rows)) {
-          this.users = response.rows;
-          // this.totalUsers = response.count || response.rows.length;
-          this.gridData = {
-            data: this.users,
-            total: response.count || response.rows.length,
-          };
-          console.log('Loaded users:', this.gridData);
-        } else {
-          console.error('Unexpected response format:', response);
-        }
-      },
-      error: (error) => {
-        console.error('Failed to load users:', error);
-      },
-    });
-  }
+  this.userService.getAllUsers(this.body).subscribe({
+    next: (response: any) => {
+      if (response.data && Array.isArray(response.data.rows)) {
+        this.users = response.data.rows; // Access rows from response.data
+        this.gridData = {
+          data: this.users, // Assign the users to grid data
+          total: response.data.count || this.users.length, // Access count from response.data
+        };
+        console.log('Loaded users:', this.gridData);
+        
+      } else {
+        console.error('Unexpected response format:', response);
+      }
+    },
+    error: (error) => {
+      console.error('Failed to load users:', error);
+      console.log('Error:', error.error);
+    },
+  });
+}
+
 
   // Fetch role statistics
   private loadRoleStatistics(): void {
