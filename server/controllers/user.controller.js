@@ -12,15 +12,13 @@ import {
   userStatCheckService,
 } from "../services/index.js";
 
-
 export const getCurrentUser = async (req, res) => {
   try {
-
     console.log(req.params.id);
-    
+
     // Fetch the user by ID
     const user = await getUserByIdService(req.params.id); // req.user is set by the authenticateJWT middleware
-    
+
     if (!user) {
       return response(res, {
         statusCode: 404,
@@ -94,20 +92,36 @@ export const getUserById = async (req, res) => {
   }
 };
 
-
 export const getAllUsers = async (req, res) => {
   try {
-    // Extract parameters with defaults
-    const {
-      page = 1,
-      limit = 10,
-      sorts = [],
-      filters = [],
-      searchQuery = "",
-    } = req.body;
+    // Extract parameters from query string
+    let { page = 1, limit = 10, sorts = [], filters = [], searchQuery = "" } = req.query;
+
+    // Debug: Log received query parameters
+    console.log("Query parameters received:", req.query);
+
+    // Parse sorts and filters if they are strings and not empty
+    if (typeof sorts === "string" && sorts.trim() !== "") {
+      console.log("Parsing 'sorts' parameter:", sorts);
+      sorts = JSON.parse(sorts);
+    } else {
+      sorts = []; // Default to an empty array
+    }
+
+    if (typeof filters === "string" && filters.trim() !== "") {
+      console.log("Parsing 'filters' parameter:", filters);
+      filters = JSON.parse(filters);
+    } else {
+      filters = []; // Default to an empty array
+    }
+
+    // Debug: Log parsed 'sorts' and 'filters'
+    console.log("Parsed sorts:", sorts);
+    console.log("Parsed filters:", filters);
 
     // Validate input
     if (!Array.isArray(sorts) || !Array.isArray(filters)) {
+      console.log("Invalid sorts or filters format");
       return response(res, {
         statusCode: 400,
         message: "Invalid sorts or filters format",
@@ -139,7 +153,8 @@ export const getAllUsers = async (req, res) => {
       data: { rows, count },
     });
   } catch (error) {
-    console.error(error);
+    // Debug: Log the error
+    console.error("Error in getAllUsers:", error);
     return response(res, {
       statusCode: 500,
       message: messages.general.INTERNAL_SERVER_ERROR,
@@ -208,18 +223,21 @@ export const checkEmailAvailability = async (req, res) => {
     const { email } = req.body;
     const currentUserId = req.params.id;
 
-    const isAvailable = await checkEmailAvailabilityService(email, currentUserId);
-    
+    const isAvailable = await checkEmailAvailabilityService(
+      email,
+      currentUserId
+    );
+
     return response(res, {
       statusCode: 200,
       message: messages.general.SUCCESS,
-      data: { isAvailable }
+      data: { isAvailable },
     });
   } catch (error) {
     console.error(error);
     return response(res, {
       statusCode: 500,
-      message: messages.general.INTERNAL_SERVER_ERROR
+      message: messages.general.INTERNAL_SERVER_ERROR,
     });
   }
 };
@@ -257,11 +275,11 @@ export const checkCurrentPassword = async (req, res) => {
     const { currentPassword } = req.body;
 
     const isPasswordValid = await passwordCheckService(userId, currentPassword);
-    
+
     return response(res, {
       statusCode: 200,
       message: messages.general.SUCCESS,
-      data: { isValid: isPasswordValid }
+      data: { isValid: isPasswordValid },
     });
   } catch (error) {
     console.error(error);

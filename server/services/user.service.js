@@ -1,37 +1,44 @@
 // Import the user model
 import { UserModel } from "../database/models/user.model.js";
 import { pagination } from "../utils/common.util.js";
-import { pool } from "../config/index.js"
+import { pool } from "../config/index.js";
 import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
 
 // Create a new user
-export const createUserService = async (userData) => {
-  const { name, email, password, role } = userData;
-  const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
-
+export const createUserService = async (userDetails) => {
   try {
+    const { name, email, password, role } = userDetails;
+    const id = uuidv4(); // Generate a new UUID for the user
+
+    // Hash the password before storing it
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const query = `
-      INSERT INTO users (name, email, password, role, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, NOW(), NOW())
-      RETURNING id, name, email, role, created_at AS "createdAt", updated_at AS "updatedAt";
+      INSERT INTO users ("id", "name", "email", "password", "role", "createdAt", "updatedAt")
+      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      RETURNING *;
     `;
-    const values = [name, email, hashedPassword, role];
+
+    const values = [id, name, email, hashedPassword, role];
+
     const result = await pool.query(query, values);
+
     return result.rows[0];
   } catch (error) {
-    throw new Error(error.message);
+    throw new Error(`Error creating user, error: ${error.message}`);
   }
 };
 
 // Get a user by ID
 export const getUserByIdService = async (id) => {
   try {
-    const query = 'SELECT * FROM users WHERE id = $1';
+    const query = "SELECT * FROM users WHERE id = $1";
     const values = [id];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     return result.rows[0];
@@ -39,7 +46,6 @@ export const getUserByIdService = async (id) => {
     throw new Error(error.message);
   }
 };
-
 
 // Get all users with pagination, sorting, filtering, and search
 export const getAllUsersService = async ({
@@ -50,6 +56,8 @@ export const getAllUsersService = async ({
   searchQuery = "",
 }) => {
   try {
+    console.log("Parameters received:", { page, limit, sorts, filters, searchQuery });
+
     // Handle sorting dynamically
     const order =
       sorts && sorts.length > 0
@@ -58,6 +66,8 @@ export const getAllUsersService = async ({
             .map((sort) => `"${sort.field}" ${sort.dir.toUpperCase()}`)
             .join(", ")
         : `"createdAt" DESC`; // Default order
+
+    console.log("Order clause:", order);
 
     // Mapping for operators
     const operatorMapping = {
@@ -80,7 +90,10 @@ export const getAllUsersService = async ({
           let value = filter.value;
 
           // Handle special cases for like operators
-          if (filter.operator === "contains" || filter.operator === "doesnotcontain") {
+          if (
+            filter.operator === "contains" ||
+            filter.operator === "doesnotcontain"
+          ) {
             value = `%${value}%`;
           } else if (filter.operator === "startswith") {
             value = `${value}%`;
@@ -92,6 +105,8 @@ export const getAllUsersService = async ({
         })
       : [];
 
+    console.log("Filter conditions:", filterConditions);
+
     // Add search query condition
     if (searchQuery) {
       filterConditions.push(
@@ -99,13 +114,20 @@ export const getAllUsersService = async ({
       );
     }
 
+    console.log("Search query condition added:", filterConditions);
+
     // Combine all conditions with AND
     const whereClause = filterConditions.length
       ? `WHERE ${filterConditions.join(" AND ")}`
       : "";
 
+    console.log("Where clause:", whereClause);
+
     // Pagination
-    const { offset, limit: paginatedLimit } = pagination({ page, limit });
+    const offset = (page - 1) * limit || 0;
+    const paginatedLimit = limit || 10;
+
+    console.log("Pagination values:", { offset, paginatedLimit });
 
     // Final query
     const query = `
@@ -116,6 +138,7 @@ export const getAllUsersService = async ({
       LIMIT ${paginatedLimit}
       OFFSET ${offset};
     `;
+    console.log("Generated query:", query);
 
     // Count query for total records
     const countQuery = `
@@ -123,6 +146,7 @@ export const getAllUsersService = async ({
       FROM "users"
       ${whereClause};
     `;
+    console.log("Generated count query:", countQuery);
 
     // Execute queries
     const client = await pool.connect();
@@ -131,6 +155,11 @@ export const getAllUsersService = async ({
         client.query(query),
         client.query(countQuery),
       ]);
+
+      console.log("Query results:", {
+        rows: usersResult.rows,
+        count: countResult.rows[0].count,
+      });
 
       return {
         rows: usersResult.rows,
@@ -159,35 +188,35 @@ export const updateUserService = async (id, updatedData) => {
         email = COALESCE($2, email),
         password = COALESCE($3, password),
         role = COALESCE($4, role),
-        updated_at = NOW()
+        "updatedAt" = NOW()
       WHERE id = $5
-      RETURNING id, name, email, role, updated_at AS "updatedAt";
+      RETURNING id, name, email, role, "updatedAt";
     `;
     const values = [name, email, hashedPassword, role, id];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     return result.rows[0];
   } catch (error) {
-    throw new Error(error.message);
+    throw new Error(`Error updating user, error: ${error.message}`);
   }
 };
 
 // Delete a user by ID
 export const deleteUserService = async (id) => {
   try {
-    const query = 'DELETE FROM users WHERE id = $1 RETURNING id';
+    const query = "DELETE FROM users WHERE id = $1 RETURNING id";
     const values = [id];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
-    return { message: 'User deleted successfully' };
+    return { message: "User deleted successfully" };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -212,21 +241,23 @@ export const checkEmailAvailabilityService = async (email, currentUserId) => {
 // Check if provided password matches user's current password
 export const passwordCheckService = async (userId, currentPassword) => {
   try {
-    const query = 'SELECT password FROM users WHERE id = $1';
+    const query = "SELECT password FROM users WHERE id = $1";
     const values = [userId];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
-    const isPasswordValid = await bcrypt.compare(currentPassword, result.rows[0].password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      result.rows[0].password
+    );
     return isPasswordValid;
   } catch (error) {
     throw new Error(error.message);
   }
 };
-
 
 // Get user statistics (count by role)
 export const userStatCheckService = async () => {
@@ -240,7 +271,7 @@ export const userStatCheckService = async () => {
 
     const counts = {};
     result.rows.forEach((row) => {
-      counts[`${row.role.replace(' ', '')}Count`] = parseInt(row.count, 10);
+      counts[`${row.role.replace(" ", "")}Count`] = parseInt(row.count, 10);
     });
 
     return counts;
