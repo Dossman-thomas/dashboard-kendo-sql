@@ -58,14 +58,13 @@ private loadUsers(): void {
 
   this.userService.getAllUsers(this.body).subscribe({
     next: (response: any) => {
-      if (response.data && Array.isArray(response.data.rows)) {
-        this.users = response.data.rows; // Access rows from response.data
+      if (response.rows && Array.isArray(response.rows)) {
+        this.users = response.rows; // Access rows directly
         this.gridData = {
           data: this.users, // Assign the users to grid data
-          total: response.data.count || this.users.length, // Access count from response.data
+          total: response.count || this.users.length, // Access count directly
         };
-        console.log('Loaded users:', this.gridData);
-        
+        // console.log('Loaded users:', this.gridData);
       } else {
         console.error('Unexpected response format:', response);
       }
@@ -76,6 +75,7 @@ private loadUsers(): void {
     },
   });
 }
+
 
 
   // Fetch role statistics
@@ -102,6 +102,7 @@ private loadUsers(): void {
   // Handle state changes for Kendo Grid (pagination, sorting, filtering)
   public dataStateChange(state: DataStateChangeEvent): void {
     this.state = state;
+    console.log('Current state:', state);
     this.body.page = Math.floor(state.skip / state.take) + 1; // Calculate current page
     this.body.limit = state.take;
 

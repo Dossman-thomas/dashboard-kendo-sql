@@ -56,16 +56,26 @@ export const getAllUsersService = async ({
   searchQuery = "",
 }) => {
   try {
-    console.log("Parameters received:", { page, limit, sorts, filters, searchQuery });
+    console.log("Parameters received:", {
+      page,
+      limit,
+      sorts,
+      filters,
+      searchQuery,
+    });
 
-    // Handle sorting dynamically
-    const order =
-      sorts && sorts.length > 0
-        ? sorts
-            .filter((sort) => sort.dir) // Exclude elements where dir is undefined
-            .map((sort) => `"${sort.field}" ${sort.dir.toUpperCase()}`)
-            .join(", ")
-        : `"createdAt" DESC`; // Default order
+// Handle sorting dynamically with default fallback
+const order =
+  sorts && sorts.length > 0
+    ? sorts
+        .map((sort) => {
+          const sortField = sort.dir ? sort.field : "createdAt"; // Default to "createdAt" if dir is missing
+          const sortDir = sort.dir ? sort.dir.toUpperCase() : "DESC"; // Default to "DESC" if dir is missing
+          return `"${sortField}" ${sortDir}`;
+        })
+        .join(", ")
+    : `"createdAt" DESC`; // Default order if no sorts are provided
+
 
     console.log("Order clause:", order);
 
@@ -114,7 +124,7 @@ export const getAllUsersService = async ({
       );
     }
 
-    console.log("Search query condition added:", filterConditions);
+    // console.log("Search query condition added:", filterConditions);
 
     // Combine all conditions with AND
     const whereClause = filterConditions.length
@@ -156,10 +166,10 @@ export const getAllUsersService = async ({
         client.query(countQuery),
       ]);
 
-      console.log("Query results:", {
-        rows: usersResult.rows,
-        count: countResult.rows[0].count,
-      });
+      // console.log("Query results:", {
+      //   rows: usersResult.rows,
+      //   count: countResult.rows[0].count,
+      // });
 
       return {
         rows: usersResult.rows,
@@ -173,7 +183,6 @@ export const getAllUsersService = async ({
     throw new Error("Failed to fetch users");
   }
 };
-
 
 // Update a user by ID
 export const updateUserService = async (id, updatedData) => {

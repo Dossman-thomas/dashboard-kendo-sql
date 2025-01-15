@@ -95,24 +95,21 @@ export const getUserById = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     // Extract parameters from query string
-    let { page = 1, limit = 10, sorts = [], filters = [], searchQuery = "" } = req.query;
+    let { page = 1, limit = 10, sorts = [], filters = [], searchQuery = "" } = req.body;
 
     // Debug: Log received query parameters
-    console.log("Query parameters received:", req.query);
+    console.log("Body parameters received:", req.body);
 
-    // Parse sorts and filters if they are strings and not empty
-    if (typeof sorts === "string" && sorts.trim() !== "") {
-      console.log("Parsing 'sorts' parameter:", sorts);
-      sorts = JSON.parse(sorts);
-    } else {
-      sorts = []; // Default to an empty array
+    // Validate `sorts` array
+    if (!Array.isArray(sorts)) {
+      console.log("Invalid 'sorts' format, resetting to empty array.");
+      sorts = [];
     }
 
-    if (typeof filters === "string" && filters.trim() !== "") {
-      console.log("Parsing 'filters' parameter:", filters);
-      filters = JSON.parse(filters);
-    } else {
-      filters = []; // Default to an empty array
+    // Validate `filters` array
+    if (!Array.isArray(filters)) {
+      console.log("Invalid 'filters' format, resetting to empty array.");
+      filters = [];
     }
 
     // Debug: Log parsed 'sorts' and 'filters'
