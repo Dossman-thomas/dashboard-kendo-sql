@@ -160,6 +160,19 @@ export class ManageRecordsComponent implements OnInit {
           console.error('Unexpected response format:', response);
         }
       },
+      error: (error) => {
+        // Log the error message coming from the service
+        console.log('Error message:', error.message);
+        console.error('Error object:', error);
+
+        if (error.message === 'No users found.') {
+          this.users = [];
+          this.gridData = { data: [], total: 0 };
+          this.toastr.error('No Matching Records Found.');
+        } else {
+          this.toastr.error('An error occurred while fetching users.');
+        }
+      },
     });
   }
 
