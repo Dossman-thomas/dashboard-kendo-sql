@@ -166,14 +166,11 @@ const order =
         client.query(countQuery),
       ]);
 
-      // console.log("Query results:", {
-      //   rows: usersResult.rows,
-      //   count: countResult.rows[0].count,
-      // });
+      const userCount = parseInt(countResult.rows[0].count, 10);
 
       return {
         rows: usersResult.rows,
-        count: parseInt(countResult.rows[0].count, 10),
+        count: userCount,
       };
     } finally {
       client.release();

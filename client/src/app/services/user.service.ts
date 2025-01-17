@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import {
   Observable,
   BehaviorSubject,
@@ -145,12 +145,7 @@ export class UserService {
       .post<any>(`${this.baseUrl}`, body, { headers }) // Add headers here
       .pipe(
         map((res) => res.data), // Extract the 'data' property
-        catchError((error) => {
-          console.error('Error fetching users:', error);
-          return throwError(
-            () => new Error('Failed to fetch users. Please try again later.')
-          );
-        })
+        catchError(this.handleErrorForGetAllUsers) // Handle errors
       );
   }
 
@@ -248,5 +243,17 @@ export class UserService {
       // Optionally add user-facing feedback or analytics tracking here.
       return throwError(() => new Error(`Error during ${operation}: ${error.message}`));
     };
+  }
+
+  private handleErrorForGetAllUsers(error: HttpErrorResponse) {
+    // Log the error response and return an observable error
+    console.error('Error fetching users:', error);
+
+    // Handle the error here, possibly with custom messages based on status codes
+    if (error.status === 404) {
+      return throwError(() => new Error('No users found.'));
+    } else {
+      return throwError(() => new Error('Failed to fetch users. Please try again later.'));
+    }
   }
 }  
