@@ -211,18 +211,20 @@ export const updateUserService = async (id, updatedData) => {
   }
 };
 
+
 // Delete a user by ID
 export const deleteUserService = async (id) => {
   try {
-    const query = "DELETE FROM users WHERE id = $1 RETURNING id";
+    // call delete_user stored procedure
+    const query = "CALL delete_user($1)";
     const values = [id];
+
+    // execute the query
     const result = await pool.query(query, values);
 
-    if (result.rows.length === 0) {
-      throw new Error("User not found");
-    }
-
+    // return success message
     return { message: "User deleted successfully" };
+
   } catch (error) {
     throw new Error(error.message);
   }
