@@ -1,16 +1,23 @@
+// Desc: Service for authenticating a user
+
+// third-party library modules
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+
+// Project modules
 import { pool } from "../config/index.js";
 
 export const authenticateUserService = async (email, password) => {
   try {
-    // Query to fetch the user by email, explicitly including the password
+    // Query to fetch the user by email, explicitly including the password 
     const query = `
       SELECT id, name, email, role, password 
       FROM users 
       WHERE email = $1
       LIMIT 1;
     `;
+
+    // Execute the query and fetch the user
     const values = [email];
     const result = await pool.query(query, values);
 
@@ -21,6 +28,7 @@ export const authenticateUserService = async (email, password) => {
       throw error;
     }
 
+    // Extract the user from the result
     const user = result.rows[0];
 
     // Compare the provided password with the hashed password stored in the database
@@ -49,6 +57,7 @@ export const authenticateUserService = async (email, password) => {
     // Return the user object (without password) and the token
     return { token, user: userResponse };
   } catch (error) {
+    // Throw any errors that occur
     throw error;
   }
 };
