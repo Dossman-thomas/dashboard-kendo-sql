@@ -10,7 +10,7 @@ export {
 } from "./user.service.js";
 
 export {
-  getPermissionsForUser,
+  getPermissionsForUserService,
   getAllPermissionsService,
   getPermissionsForRoleService,
   updatePermissionsForRoleService,

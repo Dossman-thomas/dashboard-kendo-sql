@@ -1,7 +1,7 @@
 import { messages } from "../messages/index.js";
 import { response } from "../utils/index.js";
 import {
-  getPermissionsForUser,
+  getPermissionsForUserService,
   getAllPermissionsService, 
   getPermissionsForRoleService,
   updatePermissionsForRoleService,
@@ -10,7 +10,7 @@ import {
 // Get permissions for a specific user
 export const getPermissions = async (req, res) => {
     try {
-        const userPermissions = await getPermissionsForUser(req.params.id);
+        const userPermissions = await getPermissionsForUserService(req.params.id);
         if (!userPermissions) {
         return response(res, {
             statusCode: 404,
