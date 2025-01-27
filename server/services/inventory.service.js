@@ -15,7 +15,7 @@ const executeQuery = async (query, params = []) => {
 };
 
 // DECREASE STOCK QUANTITY (decrease_stock)
-export const decreaseStock = async (productId, quantity) => {
+export const decreaseStockService = async (productId, quantity) => {
   try {
     const query = `CALL decrease_stock($1, $2)`;
     await executeQuery(query, [productId, quantity]);
@@ -31,7 +31,7 @@ export const decreaseStock = async (productId, quantity) => {
 };
 
 // INCREASE STOCK QUANTITY (increase_stock)
-export const increaseStock = async (productId, quantity) => {
+export const increaseStockService = async (productId, quantity) => {
   try {
     const query = `CALL increase_stock($1, $2)`;
     await executeQuery(query, [productId, quantity]);
@@ -47,7 +47,7 @@ export const increaseStock = async (productId, quantity) => {
 };
 
 // LOG SALE (log_sale)
-export const logSale = async (productId, quantitySold) => {
+export const logSaleService = async (productId, quantitySold) => {
   try {
     const query = `CALL log_sale($1, $2)`;
     await executeQuery(query, [productId, quantitySold]);
@@ -63,7 +63,7 @@ export const logSale = async (productId, quantitySold) => {
 };
 
 // LOG RESTOCK (log_restock)
-export const logRestock = async (productId, quantityAdded) => {
+export const logRestockService = async (productId, quantityAdded) => {
   try {
     const query = `CALL log_restock($1, $2)`;
     await executeQuery(query, [productId, quantityAdded]);
@@ -79,7 +79,7 @@ export const logRestock = async (productId, quantityAdded) => {
 };
 
 // PREVENT NEGATIVE STOCK TRIGGER
-export const testPreventNegativeStock = async (productId, invalidQuantity) => {
+export const testPreventNegativeStockService = async (productId, invalidQuantity) => {
   try {
     // Attempt to decrease stock below zero to trigger the error
     const query = `CALL decrease_stock($1, $2)`;
@@ -96,7 +96,7 @@ export const testPreventNegativeStock = async (productId, invalidQuantity) => {
 };
 
 // AUDIT STOCK CHANGES TRIGGER
-export const testAuditStockChanges = async (productId, changeType, quantity) => {
+export const testAuditStockChangesService = async (productId, changeType, quantity) => {
   try {
     // Perform a stock operation (either increase or decrease)
     if (changeType === 'Increase') {
