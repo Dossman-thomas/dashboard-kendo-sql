@@ -23,3 +23,13 @@ export {
 
 // Auth
 export { loginUser } from "./auth.controller.js";
+
+// Inventory
+export {
+  decreaseStockController,
+  increaseStockController,
+  logSaleController,
+  logRestockController,
+  testPreventNegativeStockController,
+  testAuditStockChangesController,
+} from "./inventory.controller.js";
