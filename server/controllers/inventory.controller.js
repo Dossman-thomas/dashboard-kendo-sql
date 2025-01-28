@@ -18,7 +18,6 @@ export const decreaseStockController = async (req, res) => {
     return response(res, {
       statusCode: 200,
       message: messages.general.SUCCESS,
-      data: updatedStock,
     });
   } catch (error) {
     console.log(error);
